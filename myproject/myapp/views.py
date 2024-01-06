@@ -5,6 +5,9 @@ from .services import EmailVerificationService
 from .models import EmailVerificationResult
 
 
+data_storage = {'results': []}
+
+
 @csrf_exempt
 @require_POST
 def verify_email(request):
@@ -16,59 +19,16 @@ def verify_email(request):
     return JsonResponse({'email': result.email, 'is_valid': result.is_valid, 'verification_date': result.verification_date.strftime('%Y-%m-%d %H:%M:%S')})
 
 
-@csrf_exempt
-@require_GET
-def get_verification_results(request):
-    results = EmailVerificationResult.objects.all().values()
-    return JsonResponse({'results': list(results)})
+def index(request):
+    if request.method == 'GET':
+        return JsonResponse(data_storage)
 
+    elif request.method == 'POST':
+        try:
+            data = request.POST['data']
+            data_storage['results'].append(data)
+            return JsonResponse({'message': 'Text saved successfully'})
+        except KeyError:
+            return JsonResponse({'error': 'Invalid text format'})
 
-@csrf_exempt
-@require_GET
-def get_verification_result(request, result_id):
-    try:
-        result = EmailVerificationResult.objects.get(id=result_id)
-        return JsonResponse({'email': result.email, 'is_valid': result.is_valid, 'verification_date': result.verification_date.strftime('%Y-%m-%d %H:%M:%S')})
-    except EmailVerificationResult.DoesNotExist:
-        return JsonResponse({'error': 'Result not found'}, status=404)
-
-
-@csrf_exempt
-@require_POST
-def create_verification_result(request):
-    data = request.POST
-    email = data.get('email', '')
-
-    result = EmailVerificationService.verify_email(email)
-
-    return JsonResponse({'id': result.id, 'email': result.email, 'is_valid': result.is_valid, 'verification_date': result.verification_date.strftime('%Y-%m-%d %H:%M:%S')})
-
-
-@csrf_exempt
-@require_POST
-def update_verification_result(request, result_id):
-    try:
-        result = EmailVerificationResult.objects.get(id=result_id)
-    except EmailVerificationResult.DoesNotExist:
-        return JsonResponse({'error': 'Result not found'}, status=404)
-
-    data = request.POST
-    email = data.get('email', '')
-
-    result.email = email
-    result.save()
-
-    return JsonResponse({'id': result.id, 'email': result.email, 'is_valid': result.is_valid, 'verification_date': result.verification_date.strftime('%Y-%m-%d %H:%M:%S')})
-
-
-@csrf_exempt
-@require_POST
-def delete_verification_result(request, result_id):
-    try:
-        result = EmailVerificationResult.objects.get(id=result_id)
-    except EmailVerificationResult.DoesNotExist:
-        return JsonResponse({'error': 'Result not found'}, status=404)
-
-    result.delete()
-
-    return JsonResponse({'message': 'Result deleted successfully'})
+    return JsonResponse({'error': 'Invalid request method'})
