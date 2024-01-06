@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Email Verification</title>
+</head>
+<body>
+    <h2>Email Verification</h2>
+    <form id="emailForm">
+        <label for="email">Email:</label>
+        <input type="text" id="email" name="email" required>
+        <button type="button" onclick="verifyEmail()">Verify</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        function verifyEmail() {
+            var email = document.getElementById('email').value;
+
+            fetch('/api/verify-email/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: 'email=' + email
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = 'Email: ' + data.email + '<br>Is Valid: ' + data.is_valid + '<br>Verification Date: ' + data.verification_date;
+            });
+        }
+
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

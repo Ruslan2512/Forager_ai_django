@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Results</title>
+</head>
+<body>
+    <h2>View Results</h2>
+    <button onclick="getResults()">Get Results</button>
+    <div id="results"></div>
+
+    <script>
+        function getResults() {
+            fetch('/api/verification-results/')
+            .then(response => response.json())
+            .then(data => {
+                var resultsHtml = '<ul>';
+                data.results.forEach(result => {
+                    resultsHtml += '<li>Email: ' + result.email + ', Is Valid: ' + result.is_valid + ', Verification Date: ' + result.verification_date + '</li>';
+                });
+                resultsHtml += '</ul>';
+                document.getElementById('results').innerHTML = resultsHtml;
+            });
+        }
+    </script>
+</body>
+</html>
